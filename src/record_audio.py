@@ -6,7 +6,7 @@ from pathlib import Path
 project_root = Path(__file__).resolve().parent.parent
 
 audio_dir = project_root / "audio"
-audio_file = audio_dir/"test.wav"
+audio_file = audio_dir/"input.wav"
 
 fs = 16000
 seconds = 5
