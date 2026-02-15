@@ -60,7 +60,9 @@ if not src or not tgt:
 
 translator_cache = {}
 
-while True:
+running = True
+
+while running:
     try:
         print("Recording...")
         record_audio(output_path=AUDIO_PATH, duration=5)
@@ -113,7 +115,7 @@ while True:
 
     except KeyboardInterrupt:
         print("Translator Stopped")
-        break
+        running = False
 
     except Exception as e:
         print(f"Error: {e}")
