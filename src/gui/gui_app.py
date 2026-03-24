@@ -71,16 +71,20 @@ class TranslatorWorker(QThread):
         try:
             from translator.translate_text import TextTranslator
             from Utils.lang_detect import detect_language
-            from record_audio import record_audio
+            from services.mic_services import record_audio_vad
             from tts.text_to_speech import speak_text
 
             while self.running:
 
                 self.status_signal.emit("🎙 Recording... Speak now.")
-                record_audio(output_path=AUDIO_PATH, duration=3)
+                audio_path  = record_audio_vad()
 
                 self.status_signal.emit("🧠 Transcribing...")
+                if not audio_path:
+                    self.status_signal.emit("No speech detected.")
+                    continue
                 asr_text = transcribe_audio(AUDIO_PATH)
+                
 
                 if not asr_text.strip():
                     if not self.continuous:
