@@ -16,12 +16,14 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import QThread, pyqtSignal
 
+
 # ---------------------------
 # Paths
 # ---------------------------
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 AUDIO_PATH = os.path.join(BASE_DIR, "..", "..", "audio", "input.wav")
+
 
 # ---------------------------
 # Supported Languages
@@ -225,13 +227,3 @@ class TranslatorGUI(QWidget):
 
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
-
-# ---------------------------
-# Run Application
-# ---------------------------
-
-if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    window = TranslatorGUI()
-    window.show()
-    sys.exit(app.exec())
