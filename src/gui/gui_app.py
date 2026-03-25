@@ -79,13 +79,14 @@ class TranslatorWorker(QThread):
                 self.status_signal.emit("🎙 Recording... Speak now.")
                 audio_path  = record_audio_vad()
 
-                self.status_signal.emit("🧠 Transcribing...")
                 if not audio_path:
                     self.status_signal.emit("No speech detected.")
+                    if not self.continuous:
+                        break
                     continue
-                asr_text = transcribe_audio(AUDIO_PATH)
+                self.status_signal.emit("🧠 Transcribing...")
+                asr_text = transcribe_audio(audio_path)
                 
-
                 if not asr_text.strip():
                     if not self.continuous:
                         break
@@ -115,8 +116,8 @@ class TranslatorWorker(QThread):
                 speak_text(translated, self.tgt)
 
                 self.result_signal.emit(asr_text, translated)
-
                 if not self.continuous:
+                    self.running = False
                     break
 
         except Exception as e:
@@ -210,7 +211,7 @@ class TranslatorGUI(QWidget):
     def stop_translation(self):
         if self.worker:
             self.worker.stop()
-
+            self.worker.wait()
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
 
@@ -224,11 +225,9 @@ class TranslatorGUI(QWidget):
         self.output_box.append("")
         self.output_box.append("🌍 Translation:")
         self.output_box.append(translated)
-        self.output_box.append("")
+        self.output_box.append("\n-----------------------------\n")
         self.output_box.append("Click Start to translate again.")
 
-        self.start_button.setEnabled(True)
-        self.stop_button.setEnabled(False)
 
 # ---------------------------
 # Run Application

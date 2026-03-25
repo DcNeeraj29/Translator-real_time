@@ -26,3 +26,12 @@ class HomeWin(QWidget):
         layout.addWidget(self.exit_btn)
 
         self.setLayout(layout)
+        self.mic_btn.clicked.connect(self.open_mic)
+        self.exit_btn.clicked.connect(self.close)
+
+    def open_mic(self):
+        from gui.mic_win import MicWindow
+        self.mic_window = MicWindow()
+        self.mic_window.show()
+        self.close()
+        
