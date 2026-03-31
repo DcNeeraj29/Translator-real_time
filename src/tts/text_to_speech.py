@@ -1,26 +1,28 @@
-from gtts import gTTS
-from playsound import playsound
-import os 
-import time
-from datetime import datetime
+import pyttsx3
 
-def speak_text(text, lang="en"):
+# Initialize once
+engine = pyttsx3.init()
+
+# Optimal: adjust voice setting
+engine.setProperty('rate',170) # speed
+engine.setProperty('volume',1.0) # volume(0-1)
+
+# Select voice 
+voices = engine.getProperty('voices')
+engine.setProperty('voice', voices[0].id)
+
+def speak_text(text, lang='en'):
     try:
-
-        BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        audio_dir = os.path.join(BASE_DIR, "..", "..", "audio")
-        os.makedirs(audio_dir, exist_ok=True)
-
-        filename = f"tts_{datetime.now().strftime('%H%M%S%f')}.mp3"
-        output_path = os.path.join(audio_dir, filename)
-
-        tts = gTTS(text=text, lang=lang)
-        tts.save(output_path)
-
-        playsound(output_path)
-
-        time.sleep(0.5)
-        os.remove(output_path)
-
+        if not text.strip():
+            return
+        
+        engine.stop()
+        engine.say(text)
+        engine.runAndWait()
+    
     except Exception as e:
-        print(f"TTS Error: {e}")
+        print(f"Error in text-to-speech: {e}")
+
+# Remove after test
+for v in voices:
+    print(v.id)

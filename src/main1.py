@@ -4,7 +4,7 @@ from datetime import datetime
 from asr.speech_to_text import transcribe_audio
 from translator.translate_text import TextTranslator
 from Utils.lang_detect import detect_language
-from record_audio import record_audio
+from services.mic_services import record_audio
 from tts.text_to_speech import speak_text
 
 
@@ -25,19 +25,6 @@ SUPPORTED_LANG = {
     "German": "de",
     "Spanish": "es",
     "Russian": "ru"
-}
-
-SUPPORTED_PAIRS = {
-    ("en", "hi"),
-    ("hi", "en"),
-    ("en", "fr"),
-    ("fr", "en"),
-    ("en", "de"),
-    ("de", "en"),
-    ("en", "es"),
-    ("es", "en"),
-    ("en", "ru"),
-    ("ru", "en")
 }
 
 
@@ -65,10 +52,10 @@ running = True
 while running:
     try:
         print("Recording...")
-        record_audio(output_path=AUDIO_PATH, duration=5)
+        audio_path = record_audio_vad()
 
         print("Transcribing...")
-        asr_text = transcribe_audio(AUDIO_PATH)
+        asr_text = transcribe_audio(audio_path)
 
         if not asr_text or asr_text.strip() == "":
             print("No Speech detected. Speak again.")
@@ -85,10 +72,6 @@ while running:
                 print(f"[DETECTED LANGUAGE] {current_src}")
             else:
                 print("Detected language not supported. Using selected sources.")
-
-        if (current_src, tgt) not in SUPPORTED_PAIRS:
-            print("This language pair is not supported in demo version.")
-            continue
 
         # MODEL CACHING
         if (current_src, tgt) not in translator_cache:

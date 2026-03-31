@@ -36,18 +36,6 @@ SUPPORTED_LANG = {
     "Russian": "ru"
 }
 
-SUPPORTED_PAIRS = {
-    ("en", "hi"),
-    ("hi", "en"),
-    ("en", "fr"),
-    ("fr", "en"),
-    ("en", "de"),
-    ("de", "en"),
-    ("en", "es"),
-    ("es", "en"),
-    ("en", "ru"),
-    ("ru", "en")
-}
 
 
 # ---------------------------
@@ -98,12 +86,6 @@ class TranslatorWorker(QThread):
                     detected = detect_language(asr_text)
                     if detected in SUPPORTED_LANG.values():
                         current_src = detected
-
-                if (current_src, self.tgt) not in SUPPORTED_PAIRS:
-                    self.status_signal.emit("⚠ Unsupported language pair.")
-                    if not self.continuous:
-                        break
-                    continue
 
                 if (current_src, self.tgt) not in self.translator_cache:
                     self.status_signal.emit("⏳ Loading translation model...")

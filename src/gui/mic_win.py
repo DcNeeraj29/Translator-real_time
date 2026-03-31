@@ -38,20 +38,6 @@ SUPPORTED_LANG = {
     "Russian": "ru"
 }
 
-SUPPORTED_PAIRS = {
-    ("en", "hi"),
-    ("hi", "en"),
-    ("en", "fr"),
-    ("fr", "en"),
-    ("en", "de"),
-    ("de", "en"),
-    ("en", "es"),
-    ("es", "en"),
-    ("en", "ru"),
-    ("ru", "en")
-}
-
-
 # ---------------------------
 # Worker Thread
 # ---------------------------
@@ -73,16 +59,16 @@ class TranslatorWorker(QThread):
         try:
             from translator.translate_text import TextTranslator
             from Utils.lang_detect import detect_language
-            from record_audio import record_audio
+            from services.mic_services import record_audio_vad
             from tts.text_to_speech import speak_text
 
             while self.running:
 
                 self.status_signal.emit("🎙 Recording... Speak now.")
-                record_audio(output_path=AUDIO_PATH, duration=3)
+                audio_path = record_audio_vad()
 
                 self.status_signal.emit("🧠 Transcribing...")
-                asr_text = transcribe_audio(AUDIO_PATH)
+                asr_text = transcribe_audio(audio_path)
 
                 if not asr_text.strip():
                     if not self.continuous:
@@ -95,12 +81,6 @@ class TranslatorWorker(QThread):
                     detected = detect_language(asr_text)
                     if detected in SUPPORTED_LANG.values():
                         current_src = detected
-
-                if (current_src, self.tgt) not in SUPPORTED_PAIRS:
-                    self.status_signal.emit("⚠ Unsupported language pair.")
-                    if not self.continuous:
-                        break
-                    continue
 
                 if (current_src, self.tgt) not in self.translator_cache:
                     self.status_signal.emit("⏳ Loading translation model...")
@@ -208,6 +188,7 @@ class TranslatorGUI(QWidget):
     def stop_translation(self):
         if self.worker:
             self.worker.stop()
+            self.worker.wait()
 
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
@@ -216,14 +197,11 @@ class TranslatorGUI(QWidget):
         self.output_box.append(message)
 
     def display_result(self, asr, translated):
-        self.output_box.clear()
-        self.output_box.append("🗣 You said:")
+        self.output_box.append("You Said: ")
         self.output_box.append(asr)
         self.output_box.append("")
-        self.output_box.append("🌍 Translation:")
+        self.output_box.append("Translation: ")
         self.output_box.append(translated)
-        self.output_box.append("")
-        self.output_box.append("Click Start to translate again.")
-
-        self.start_button.setEnabled(True)
-        self.stop_button.setEnabled(False)
+        self.output_box.append("\n------------------------------\n")
+        
+        
