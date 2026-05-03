@@ -26,3 +26,4 @@ def speak_text(text, lang='en'):
 # Remove after test
 for v in voices:
     print(v.id)
+
