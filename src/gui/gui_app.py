@@ -56,7 +56,7 @@ class TranslatorWorker(QThread):
         self.auto_detect = auto_detect
         self.translator_cache = translator_cache
         self.continuous = continuous
-        self.running = True
+        self._is_running = True
 
     def run(self):
         try:
@@ -65,19 +65,26 @@ class TranslatorWorker(QThread):
             from services.mic_services import record_audio_vad
             from tts.text_to_speech import speak_text
 
-            while self.running:
+            while self._is_running:
 
                 self.status_signal.emit("🎙 Recording... Speak now.")
-                audio_path  = record_audio_vad()
+                audio_path = record_audio_vad()
+
+                if not self._is_running:
+                    return
 
                 if not audio_path:
                     self.status_signal.emit("No speech detected.")
                     if not self.continuous:
                         break
                     continue
+
                 self.status_signal.emit("🧠 Transcribing...")
                 asr_text = transcribe_audio(audio_path)
-                
+
+                if not self._is_running:
+                    return
+
                 if not asr_text.strip():
                     if not self.continuous:
                         break
@@ -97,20 +104,23 @@ class TranslatorWorker(QThread):
                 translator = self.translator_cache[(current_src, self.tgt)]
                 translated = translator.translate(asr_text)
 
+                if not self._is_running:
+                    return
+
                 self.status_signal.emit("🔊 Speaking translated text...")
                 speak_text(translated, self.tgt)
 
                 self.result_signal.emit(asr_text, translated)
+
                 if not self.continuous:
-                    self.running = False
+                    self._is_running = False
                     break
 
         except Exception as e:
             print("Worker Error:", e)
 
     def stop(self):
-        self.running = False
-
+        self._is_running = False
 
 # ---------------------------
 # Main GUI Window
@@ -316,7 +326,7 @@ class TranslatorGUI(QWidget):
     def stop_translation(self):
         if self.worker:
             self.worker.stop()
-            self.worker.wait()
+            # self.worker.wait()
 
         self.start_button.setEnabled(True)
         self.stop_button.setEnabled(False)
@@ -337,3 +347,4 @@ if __name__ == "__main__":
     window = TranslatorGUI()
     window.show()
     sys.exit(app.exec())
+    
